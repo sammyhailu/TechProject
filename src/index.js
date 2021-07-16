@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
 
 const userRouter = require('./routes/user');
 
@@ -33,6 +34,8 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // api routes and end points
 app.use('/ping', (req, res) => {

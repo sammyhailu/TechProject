@@ -18,7 +18,8 @@ router.route('/form/:id')
 
 //   get applicants
 router.route('/applicants')
-  .get(verifyUser, userController.getApplicants);
+  .get(verifyUser, userController.getApplicants)
+  .post(userController.submitApplication);
 
 //   get single applicant also update applicant status
 router.route('/applicants/:id')

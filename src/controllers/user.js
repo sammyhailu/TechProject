@@ -1,8 +1,11 @@
 const { validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
+const mongooseDynamic = require('mongoose-dynamic-schemas');
+const util = require('util');
+const mongoose = require('mongoose');
 const User = require('../models/user');
 // const Applicant = require('../models/applicant');
-// const Form = require('../models/form');
+const Form = require('../models/form');
 /**
  *  validationresult handler
  *  @param {Express.Request} reqObj
@@ -70,17 +73,26 @@ exports.login = async (req, res, next) => {
 
 // form create and get
 exports.createForm = async (req, res, next) => {
+  // req.body = {
+  //   description: 'holala',
+  //   gender: { type: 'String', default: 'Male' },
+  //   email: { type: String, required: true, default: 4 },
+  // };
   try {
     validationResultHandler(req, res);
+    // const keys = Object.keys(req.body);
+    // keys.shift();
+    const { description } = req.body;
+    delete req.body.description;
 
-    const form = await Form.create(req.body);
-    res.json({
-      status: 'success',
-      body: form,
-      msg: 'Form created.',
-    }).status(201);
+    const previousForm = await Form.findOne({ company: req.user.id });
+    if (previousForm) return res.json({ status: 'error', msg: 'You can not create morethan one form' });
+    Form.create({ description, company: req.user._id })
+      .then((result) => mongooseDynamic.addSchemaField(Form, 'applicationForm', req.body)
+        .then((result) => res.json({ status: 'success', msg: result }).status(201)))
+      .catch((err) => res.json({ status: 'error', msg: err.message }));
   } catch (err) {
-
+    res.json({ status: 'error', msg: err.message }).status(500);
   }
 };
 
@@ -88,7 +100,7 @@ exports.getForms = async (req, res, next) => {
   try {
     validationResultHandler(req, res);
 
-    const forms = await Form.find({});
+    const forms = await Form.find({ company: req.user._id });
     res.json({
       status: 'success',
       body: forms,
@@ -117,6 +129,14 @@ exports.deleteForm = async (req, res, next) => {
 };
 //   get applicants
 exports.getApplicants = async (req, res, next) => {
+  try {
+
+  } catch (err) {
+
+  }
+};
+
+exports.submitApplication = async (req, res, next) => {
   try {
 
   } catch (err) {
