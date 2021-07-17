@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
 const schema = new mongoose.Schema({
-  company: String,
+  companyName: String,
   firstName: String,
   lastName: String,
   phone: Number,

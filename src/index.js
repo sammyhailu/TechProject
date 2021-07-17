@@ -4,6 +4,7 @@ const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 
 const userRouter = require('./routes/user');
+const applicationRouter = require('./routes/application');
 
 // load environmental vaiables
 require('dotenv').config();
@@ -43,11 +44,11 @@ app.use('/ping', (req, res) => {
 });
 
 app.use('/api/v1/user', userRouter);
-// app.use('/applications', applicationsRoute);
+app.use('/api/v1/applications', applicationRouter);
 
 // error handler
 app.use('*', (req, res) => {
-  res.json({ status: 'error', msg: `${req.originalUrl} Not Found!` });
+  res.json({ status: 'error', msg: `${req.originalUrl} Not Found!` }).status(404);
 });
 
 const port = process.env.PORT || 3000;
