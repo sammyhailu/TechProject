@@ -14,7 +14,7 @@ function validationResultHandler(reqObj, resObj) {
 exports.getAllApplications = async (req, res, next) => {
   try {
     validationResultHandler(req, res);
-    const applications = await Form.find();
+    const applications = await Form.find().select('-applicationForm');
     res.json({
       status: 'success',
       body: applications,
@@ -28,7 +28,7 @@ exports.getAllApplications = async (req, res, next) => {
 exports.getApplication = async (req, res, next) => {
   try {
     validationResultHandler(req, res);
-    const application = await Form.findById(req.params.id);
+    const application = await Form.findById(req.params.id).select('-applicationForm');
     if (!application) {
       return res.json({
         status: 'error',
