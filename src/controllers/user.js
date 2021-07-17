@@ -87,12 +87,18 @@ exports.createForm = async (req, res, next) => {
     delete req.body.description;
     delete req.body.title;
 
+    req.body.selected = { type: 'Boolean', default: false };
+    req.body.pending = { type: 'Boolean', default: false };
     const previousForm = await Form.findOne({ company: req.user.id });
     if (previousForm) return res.json({ status: 'error', msg: 'You can not create morethan one form' });
     Form.create({ description, title, company: req.user._id })
-      .then((result) => mongooseDynamic.addSchemaField(Form, 'applicationForm', [req.body])
-        .then((result) => res.json({ status: 'success', msg: result }).status(201)))
-      .catch((err) => res.json({ status: 'error', msg: err.message }));
+      // .then((result) => mongooseDynamic.addSchemaField(Form, 'applicationForm', [req.body]))
+      .then((result) => mongooseDynamic.changeFieldDefinition(Form, 'applicationForm', [req.body]))
+      .then((result) => {
+        console.log(util.inspect(Form.schema.tree, false, null));
+        return res.json({ status: 'success', msg: result }).status(200);
+      })
+      .catch((err) => res.json({ status: 'error', msg: err }));
   } catch (err) {
     console.log('err in try catch', err);
     res.json({ status: 'error', msg: err.message }).status(500);
@@ -110,7 +116,7 @@ exports.getForms = async (req, res, next) => {
       msg: 'All forms',
     });
   } catch (err) {
-
+    res.json({ status: 'error', msg: err.message }).status(500);
   }
 };
 
@@ -161,7 +167,6 @@ exports.submitApplication = async (req, res, next) => {
 
     const { formId } = req.body;
     delete req.body.formId;
-    req.body.applicantId = new mongoose.Types.ObjectId();
     const form = await Form.findOneAndUpdate(
       { _id: formId },
       {
@@ -191,21 +196,33 @@ exports.submitApplication = async (req, res, next) => {
 exports.getApplicant = async (req, res, next) => {
   try {
     validationResultHandler(req, res);
-    const applicants = await Form.find({ company: req.user._id }).select('applicationForm');
 
-    const applicant = applicants[0].applicationForm.filter((applicant) => applicant.applicantId == req.params.id)[0];
-    console.log('applicant: ', applicant);
-    if (!applicant) {
+    Form.aggregate([
+      { $match: { company: mongoose.Types.ObjectId(req.user._id) } },
+      {
+        $addFields: {
+          applicationForm: {
+            $filter: {
+              input: '$applicationForm',
+              cond: { $eq: ['$$this._id', mongoose.Types.ObjectId(req.params.id)] },
+            },
+          },
+        },
+      },
+    ]).exec().then((applicant) => {
+      console.log(' applicant: ', applicant);
+      if (!applicant) {
+        return res.json({
+          status: 'error',
+          msg: 'No applicant found',
+        }).status(200);
+      }
       return res.json({
-        status: 'error',
-        msg: 'No applicant found',
+        status: 'success',
+        body: applicant,
+        msg: 'Applicant form',
       }).status(200);
-    }
-    return res.json({
-      status: 'success',
-      body: applicant,
-      msg: 'Applicant form',
-    }).status(200);
+    });
   } catch (err) {
     res.json({ status: 'error', msg: err.message }).status(500);
   }

@@ -4,7 +4,7 @@ const schema = new mongoose.Schema({
   company: { type: mongoose.Types.ObjectId, ref: 'User' },
   description: { type: String, required: true },
   title: { type: String, required: true },
-  applicationForm: Array,
+  applicationForm: [],
 }, { strict: false });
 
 const Form = mongoose.model('Form', schema);

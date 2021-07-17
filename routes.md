@@ -13,6 +13,7 @@
 
                 PATCH:/form:id  => update his form by form id
                 DELETE:/form:id  => delete his form by form  id
+                GET:/form/:id/share  => generate a link points to the form
 
                 GET:/applicants   => get applicants who filled his form
                 POST:/applicants  => add applicant when he fill application form and submit it
